@@ -1,0 +1,13 @@
+{
+  "name": "ebay-webhook-endpoint",
+  "version": "1.0.0",
+  "description": "eBay webhook endpoint for marketplace account deletion notifications",
+  "main": "api/webhook.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["ebay", "webhook", "vercel"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}
