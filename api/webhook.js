@@ -15,12 +15,18 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    // eBayは challengeCode か challenge_code のどちらかで送ってくる可能性がある
     const challengeCode = req.query.challengeCode || req.query.challenge_code;
     const verificationToken = req.query.verificationToken || req.query.verification_token;
     const endpointUrl = req.query.endpointUrl || req.query.endpoint_url;
 
     console.log('Challenge Code:', challengeCode);
+
+    // eBayの最初のリクエストはchallenge_codeだけ
+    if (challengeCode && (!verificationToken || !endpointUrl)) {
+      console.log('Only challenge code received. Responding with empty 200 OK.');
+      res.status(200).end();
+      return;
+    }
 
     if (!challengeCode) {
       console.log('Challenge code is missing. Responding with an empty 200 OK.');
@@ -28,12 +34,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    if (!verificationToken || !endpointUrl) {
-      console.log('Missing verificationToken or endpointUrl.');
-      res.status(400).json({ error: 'Missing verificationToken or endpointUrl' });
-      return;
-    }
-
+    // 3つ揃っている場合のみ本検証
     try {
       const stringToHash = challengeCode + verificationToken + endpointUrl;
       const hash = crypto.createHash('sha256').update(stringToHash).digest('hex');
@@ -54,4 +55,4 @@ module.exports = async (req, res) => {
   }
 
   res.status(405).json({ error: 'Method not allowed' });
-}; 
+};
