@@ -15,13 +15,16 @@ module.exports = async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const { challengeCode, verificationToken, endpointUrl } = req.query;
-    
-    // eBay sends a "ping" without a challenge code.
-    // Respond with an empty 200 OK to acknowledge.
+    // eBayは challengeCode か challenge_code のどちらかで送ってくる可能性がある
+    const challengeCode = req.query.challengeCode || req.query.challenge_code;
+    const verificationToken = req.query.verificationToken || req.query.verification_token;
+    const endpointUrl = req.query.endpointUrl || req.query.endpoint_url;
+
+    console.log('Challenge Code:', challengeCode);
+
     if (!challengeCode) {
       console.log('Challenge code is missing. Responding with an empty 200 OK.');
-      res.status(200).end(); // Send an empty response
+      res.status(200).end();
       return;
     }
 
@@ -51,4 +54,4 @@ module.exports = async (req, res) => {
   }
 
   res.status(405).json({ error: 'Method not allowed' });
-};
+}; 
