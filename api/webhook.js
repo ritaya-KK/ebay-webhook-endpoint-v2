@@ -1,7 +1,7 @@
 const { createHmac } = require('crypto');
 const getRawBody = require('raw-body');
 
-export const config = {
+const config = {
   api: { bodyParser: false },       // rawBody を読むため
   runtime: 'nodejs'                // Edge を回避
 };
@@ -24,7 +24,7 @@ async function getRawBody(req) {
   });
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   console.log('[RUN TIME] TOKEN:', process.env.EBAY_VERIFICATION_TOKEN ?? 'undefined');
 
   if (req.method === 'GET') {
@@ -71,4 +71,7 @@ export default async function handler(req, res) {
 
   res.setHeader('Allow', ['GET', 'POST']);
   res.status(405).end();
-} 
+}
+
+module.exports = handler;
+module.exports.config = config; 
