@@ -2,31 +2,11 @@ const { createHmac } = require('crypto');
 const getRawBody = require('raw-body');
 
 const config = {
-  api: { bodyParser: false },       // rawBody を読むため
-  runtime: 'nodejs'                // Edge を回避
+  api: { bodyParser: false },
+  runtime: 'nodejs'
 };
 
-console.log('[BUILD TIME] TOKEN:', process.env.EBAY_VERIFICATION_TOKEN ?? 'undefined');
-
-// 生のリクエストボディをパースする関数
-async function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => {
-      data += chunk;
-    });
-    req.on('end', () => {
-      resolve(data);
-    });
-    req.on('error', err => {
-      reject(err);
-    });
-  });
-}
-
 async function handler(req, res) {
-  console.log('[RUN TIME] TOKEN:', process.env.EBAY_VERIFICATION_TOKEN ?? 'undefined');
-
   if (req.method === 'GET') {
     const challengeCode = req.query.challengeCode || req.query.challenge_code;
     const verificationToken = process.env.EBAY_VERIFICATION_TOKEN;
@@ -46,26 +26,20 @@ async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    // 1. 生バイト列を取得
     const raw = await getRawBody(req);
     const signature = req.headers['x-ebay-signature'];
 
-    // 2. HMAC を計算
     const expected = createHmac('sha256', process.env.EBAY_VERIFICATION_TOKEN)
                      .update(raw)
                      .digest('base64');
 
     if (signature !== expected) {
-      console.warn('Signature mismatch');
       return res.status(400).end('Invalid signature');
     }
 
-    // 3. ここで JSON.parse(raw) して業務ロジックへ
-    const payload = JSON.parse(raw.toString());
-    // 例: payload.notification.data.username など
-    // 非同期処理に回す場合はここでキューイング等
+    // 必要ならここでpayloadを非同期処理へ
+    // const payload = JSON.parse(raw.toString());
 
-    // 4. eBay 推奨の 204 空応答
     return res.status(204).end();
   }
 
@@ -74,4 +48,4 @@ async function handler(req, res) {
 }
 
 module.exports = handler;
-module.exports.config = config; 
+module.exports.config = config;
