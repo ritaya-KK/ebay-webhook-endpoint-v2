@@ -4,8 +4,37 @@ console.log('[BUILD TIME] TOKEN:', process.env.EBAY_VERIFICATION_TOKEN ?? 'undef
 
 const crypto = require('crypto');
 
-export default function handler(req, res) {
+// 生のリクエストボディをパースする関数
+async function getRawBody(req) {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      resolve(data);
+    });
+    req.on('error', err => {
+      reject(err);
+    });
+  });
+}
+
+export default async function handler(req, res) {
   console.log('[RUN TIME] TOKEN:', process.env.EBAY_VERIFICATION_TOKEN ?? 'undefined');
+
+  let body = req.body;
+  if (req.method === 'POST' && !body) {
+    // JSONボディを手動でパース
+    const rawBody = await getRawBody(req);
+    try {
+      body = JSON.parse(rawBody);
+    } catch (e) {
+      body = {};
+    }
+  }
+
+  console.log('[RUN TIME] BODY:', JSON.stringify(body));
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -33,7 +62,7 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const challengeCode = req.body.challengeCode || req.body.challenge_code;
+    const challengeCode = body.challengeCode || body.challenge_code;
     const verificationToken = process.env.EBAY_VERIFICATION_TOKEN;
     const endpointUrl = process.env.EBAY_ENDPOINT_URL;
 
