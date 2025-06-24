@@ -1,5 +1,5 @@
-import { createHmac } from 'crypto';
-import getRawBody from 'raw-body';
+const { createHmac } = require('crypto');
+const getRawBody = require('raw-body');
 
 export const config = {
   api: { bodyParser: false },       // rawBody を読むため
@@ -71,5 +71,4 @@ export default async function handler(req, res) {
 
   res.setHeader('Allow', ['GET', 'POST']);
   res.status(405).end();
-} 
 } 
